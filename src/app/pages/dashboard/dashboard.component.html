@@ -1,0 +1,123 @@
+<div class="dashboard-container">
+  <h2>Task Dashboard</h2>
+  <button class="logout-btn" (click)="logout()">Logout</button>
+
+  
+  <div class="add-task">
+    <input [(ngModel)]="newTaskTitle" placeholder="New Task Title" />
+    <select [(ngModel)]="newTaskPriority">
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
+    </select>
+    <input [(ngModel)]="newTaskDueDate" type="date" />
+    <button (click)="addTask()">Add Task</button>
+  </div>
+
+  <div class="filter-sort">
+    <select [(ngModel)]="filterPriority" (change)="loadTasks()">
+      <option value="">All Priorities</option>
+      <option value="Low">Low</option>
+      <option value="Medium">Medium</option>
+      <option value="High">High</option>
+    </select>
+
+    <select [(ngModel)]="sortOption" (change)="sortTasks()">
+      <option value="">Sort By</option>
+      <option value="createdAt">Created Date</option>
+      <option value="dueDate">Due Date</option>
+    </select>
+  </div>
+
+ 
+  <div class="kanban-board" cdkDropListGroup>
+    
+    <div class="kanban-column" cdkDropList #todoList="cdkDropList" [cdkDropListData]="todo" [cdkDropListConnectedTo]="[inProgressList, doneList]" (cdkDropListDropped)="drop($event)">
+      <h3>To Do</h3>
+      <div class="task-card" *ngFor="let task of todo" cdkDrag>
+        <div class="drag-handle" cdkDragHandle title="Drag">☰</div>
+        
+        <div *ngIf="!task.editing">
+          <h4>{{ task.title }}</h4>
+          <p>Priority: {{ task.priority }}</p>
+          <p *ngIf="task.dueDate">Due: {{ task.dueDate }}</p>
+          <div class="card-actions">
+            <button (click)="editTask(task)" title="Edit">✏️</button>
+            <button (click)="deleteTask(task)" title="Delete">❌</button>
+          </div>
+        </div>
+
+     
+        <div *ngIf="task.editing" class="edit-form">
+          <input [(ngModel)]="task.title" />
+          <select [(ngModel)]="task.priority">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+          <input [(ngModel)]="task.dueDate" type="date" />
+          <button (click)="saveEdit(task)">💾</button>
+          <button (click)="cancelEdit(task)">✖️</button>
+        </div>
+      </div>
+    </div>
+
+  
+  <div class="kanban-column" cdkDropList #inProgressList="cdkDropList" [cdkDropListData]="inProgress" [cdkDropListConnectedTo]="[todoList, doneList]" (cdkDropListDropped)="drop($event)">
+      <h3>In Progress</h3>
+      <div class="task-card" *ngFor="let task of inProgress" cdkDrag>
+        <div class="drag-handle" cdkDragHandle title="Drag">☰</div>
+        <div *ngIf="!task.editing">
+          <h4>{{ task.title }}</h4>
+          <p>Priority: {{ task.priority }}</p>
+          <p *ngIf="task.dueDate">Due: {{ task.dueDate }}</p>
+          <div class="card-actions">
+            <button (click)="editTask(task)" title="Edit">✏️</button>
+            <button (click)="deleteTask(task)" title="Delete">❌</button>
+          </div>
+        </div>
+
+        <div *ngIf="task.editing" class="edit-form">
+          <input [(ngModel)]="task.title" />
+          <select [(ngModel)]="task.priority">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+          <input [(ngModel)]="task.dueDate" type="date" />
+          <button (click)="saveEdit(task)">💾</button>
+          <button (click)="cancelEdit(task)">✖️</button>
+        </div>
+      </div>
+    </div>
+
+   
+  <div class="kanban-column" cdkDropList #doneList="cdkDropList" [cdkDropListData]="done" [cdkDropListConnectedTo]="[todoList, inProgressList]" (cdkDropListDropped)="drop($event)">
+      <h3>Done</h3>
+      <div class="task-card" *ngFor="let task of done" cdkDrag>
+        <div class="drag-handle" cdkDragHandle title="Drag">☰</div>
+        <div *ngIf="!task.editing">
+          <h4>{{ task.title }}</h4>
+          <p>Priority: {{ task.priority }}</p>
+          <p *ngIf="task.dueDate">Due: {{ task.dueDate }}</p>
+          <div class="card-actions">
+            <button (click)="editTask(task)" title="Edit">✏️</button>
+            <button (click)="deleteTask(task)" title="Delete">❌</button>
+          </div>
+        </div>
+
+        <div *ngIf="task.editing" class="edit-form">
+          <input [(ngModel)]="task.title" />
+          <select [(ngModel)]="task.priority">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+          <input [(ngModel)]="task.dueDate" type="date" />
+          <button (click)="saveEdit(task)">💾</button>
+          <button (click)="cancelEdit(task)">✖️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
