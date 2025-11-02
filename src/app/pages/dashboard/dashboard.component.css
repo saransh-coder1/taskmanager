@@ -1,3 +1,96 @@
+@media (max-width: 600px) {
+  .dashboard-container {
+    padding: 10px;
+  }
+
+  .logout-btn {
+    float: none;
+    display: inline-block;
+    margin: 10px auto;
+    width: auto;
+    min-width: 120px;
+    font-size: 14px;
+    padding: 6px 12px;
+    position: static;
+  }
+
+  .add-task {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .add-task button {
+    padding: 8px;
+    font-size: 14px;
+    height: 36px;
+  }
+
+  .add-task input,
+  .add-task select {
+    height: 36px;
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .filter-sort {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filter-sort select {
+    height: 36px;
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .kanban-board {
+    flex-direction: column;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .kanban-column {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 10px;
+  }
+
+  .task-card {
+    padding: 8px 35px;  /* Slightly more space for icons */
+    margin-bottom: 8px;
+    min-height: 70px;  /* Slightly reduced minimum height for mobile */
+  }
+
+  .drag-handle {
+    font-size: 14px;
+    padding: 4px;
+    left: 4px;
+  }
+
+  .card-actions {
+    right: 4px;
+    gap: 4px;
+  }
+
+  .card-actions button {
+    font-size: 14px;
+    padding: 4px;
+  }
+
+  .edit-form {
+    padding: 6px;
+    gap: 6px;
+  }
+
+  .edit-form input,
+  .edit-form select {
+    height: 32px;
+    padding: 6px;
+    font-size: 14px;
+  }
+}
 .dashboard-container {
   padding: 20px;
   text-align: center;
@@ -70,21 +163,30 @@
 .task-card {
   background: #fff;
   border-radius: 8px;
-  padding: 10px;
+  padding: 10px 40px;  /* Increased side padding for icons */
   margin-bottom: 10px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   cursor: grab;
   position: relative;
+  min-height: 80px;  /* Minimum height to prevent squishing */
 }
 
 .task-card h4 {
-  margin: 0;
+  margin: 0 0 8px 0;
   font-size: 16px;
+  word-wrap: break-word;  /* Allow long words to break */
+  overflow-wrap: break-word;
+  line-height: 1.3;
+  padding-right: 30px;  /* Space for edit/delete buttons */
 }
 
 .task-card p {
   font-size: 13px;
   color: #666;
+  margin: 4px 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  line-height: 1.4;
 }
 
 .drag-handle {
