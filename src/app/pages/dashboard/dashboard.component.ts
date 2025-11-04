@@ -1,17 +1,15 @@
-
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CdkDragDrop, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
 
 interface Task {
-  id: number;
   title: string;
-  priority: 'Low' | 'Medium' | 'High';
+  description?: string;
   status: 'todo' | 'inProgress' | 'done';
-  createdAt: string;
+  priority: 'Low' | 'Medium' | 'High';
+  createdAt: Date;
   dueDate?: string;
   editing?: boolean;
+  showStatusDropdown?: boolean;
 }
 
 @Component({
@@ -19,49 +17,56 @@ interface Task {
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.css']
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent {
+  newTaskTitle = '';
+  newTaskDescription = '';
+  newTaskPriority: 'Low' | 'Medium' | 'High' = 'Low';
+  newTaskDueDate = '';
+
   todo: Task[] = [];
   inProgress: Task[] = [];
   done: Task[] = [];
 
-  newTaskTitle = '';
-  newTaskPriority: 'Low' | 'Medium' | 'High' = 'Low';
-  newTaskDueDate = '';
-
   filterPriority = '';
   sortOption = '';
+  filterCreatedDate = '';
+  filterDueDate = '';
 
-  constructor(private auth: AuthService, private router: Router) {}
+  
+  private allTasks: Task[] = [];
 
-  ngOnInit() {
-    if (!this.auth.isLoggedIn()) {
-      this.router.navigate(['/login']);
-      return;
-    }
-    this.loadTasks();
+ 
+  logout() {
+    console.log('Logout clicked');
   }
 
+ 
   addTask() {
     if (!this.newTaskTitle.trim()) return;
+
     const newTask: Task = {
-      id: Date.now(),
-      title: this.newTaskTitle,
+      title: this.newTaskTitle.trim(),
+      description: this.newTaskDescription.trim(),
       priority: this.newTaskPriority,
       dueDate: this.newTaskDueDate || '',
-      createdAt: new Date().toISOString(),
+      createdAt: new Date(),
       status: 'todo'
     };
-    this.todo.push(newTask);
-    this.newTaskTitle = '';
-    this.newTaskDueDate = '';
-    this.saveTasks();
-  }
 
-  deleteTask(task: Task) {
-    this.todo = this.todo.filter(t => t.id !== task.id);
-    this.inProgress = this.inProgress.filter(t => t.id !== task.id);
-    this.done = this.done.filter(t => t.id !== task.id);
-    this.saveTasks();
+   
+    this.allTasks.push(newTask);
+    
+   
+    localStorage.setItem('tasks', JSON.stringify(this.allTasks));
+
+ 
+    this.newTaskTitle = '';
+    this.newTaskDescription = '';
+    this.newTaskPriority = 'Low';
+    this.newTaskDueDate = '';
+    
+    
+    this.loadTasks();
   }
 
   editTask(task: Task) {
@@ -70,7 +75,17 @@ export class DashboardComponent implements OnInit {
 
   saveEdit(task: Task) {
     task.editing = false;
-    this.saveTasks();
+    
+   
+    const index = this.allTasks.findIndex(t => t === task);
+    if (index !== -1) {
+      this.allTasks[index] = { ...task };
+    }
+    
+  
+    localStorage.setItem('tasks', JSON.stringify(this.allTasks));
+    
+    this.loadTasks();
   }
 
   cancelEdit(task: Task) {
@@ -78,45 +93,132 @@ export class DashboardComponent implements OnInit {
     this.loadTasks();
   }
 
+ 
+  deleteTask(task: Task) {
+    
+    this.allTasks = this.allTasks.filter(t => t !== task);
+    
+   
+    localStorage.setItem('tasks', JSON.stringify(this.allTasks));
+    
+  
+    this.loadTasks();
+  }
+
+  
   drop(event: CdkDragDrop<Task[]>) {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
-      transferArrayItem(event.previousContainer.data, event.container.data, event.previousIndex, event.currentIndex);
+      const movedTask = event.previousContainer.data[event.previousIndex];
+
+      if (event.container.id.includes('todo')) movedTask.status = 'todo';
+      else if (event.container.id.includes('inProgress')) movedTask.status = 'inProgress';
+      else if (event.container.id.includes('done')) movedTask.status = 'done';
+
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+      
+     
+      const taskIndex = this.allTasks.findIndex(t => t === movedTask);
+      if (taskIndex !== -1) {
+        this.allTasks[taskIndex] = { ...movedTask };
+      }
+      
+      
+      localStorage.setItem('tasks', JSON.stringify(this.allTasks));
     }
-    this.saveTasks();
-  }
-
-  saveTasks() {
-    const allTasks = [
-      ...this.todo.map(t => ({ ...t, status: 'todo' })),
-      ...this.inProgress.map(t => ({ ...t, status: 'inProgress' })),
-      ...this.done.map(t => ({ ...t, status: 'done' }))
-    ];
-    localStorage.setItem('tasks', JSON.stringify(allTasks));
-  }
-
-  loadTasks() {
-    const allTasks: Task[] = JSON.parse(localStorage.getItem('tasks') || '[]');
-    const filtered = this.filterPriority ? allTasks.filter(t => t.priority === this.filterPriority) : allTasks;
-
-    const sorted = [...filtered];
-    if (this.sortOption === 'createdAt') {
-      sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-    } else if (this.sortOption === 'dueDate') {
-      sorted.sort((a, b) => new Date(a.dueDate || '').getTime() - new Date(b.dueDate || '').getTime());
-    }
-
-    this.todo = sorted.filter(t => t.status === 'todo');
-    this.inProgress = sorted.filter(t => t.status === 'inProgress');
-    this.done = sorted.filter(t => t.status === 'done');
-  }
-
-  sortTasks() {
+    
+   
     this.loadTasks();
   }
 
-  logout() {
-    this.auth.logout();
+  
+  changeStatus(task: Task, event: Event) {
+    const selectElement = event.target as HTMLSelectElement;
+    const newStatus = selectElement.value as 'todo' | 'inProgress' | 'done';
+    if (!newStatus) return;
+
+    task.status = newStatus;
+    this.moveTask(task, newStatus);
+    this.loadTasks();
+  }
+
+  
+  moveTask(task: Task, newStatus: 'todo' | 'inProgress' | 'done') {
+  
+    this.todo = this.todo.filter(t => t !== task);
+    this.inProgress = this.inProgress.filter(t => t !== task);
+    this.done = this.done.filter(t => t !== task);
+
+   
+    if (newStatus === 'todo') this.todo.push(task);
+    if (newStatus === 'inProgress') this.inProgress.push(task);
+    if (newStatus === 'done') this.done.push(task);
+   
+    this.loadTasks();
+  }
+
+ 
+  sortTasks() {
+    
+    this.loadTasks();
+  }
+
+  loadTasks() {
+    
+    if (this.allTasks.length === 0) {
+      const savedTasks = localStorage.getItem('tasks');
+      if (savedTasks) {
+        this.allTasks = JSON.parse(savedTasks);
+      }
+    }
+
+    
+    let filtered = [...this.allTasks];
+
+    if (this.filterPriority) {
+      filtered = filtered.filter(t => t.priority === this.filterPriority);
+    }
+
+  
+    if (this.sortOption === 'createdAt' && this.filterCreatedDate) {
+      const filterDate = new Date(this.filterCreatedDate);
+      filterDate.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(task => {
+        const taskDate = new Date(task.createdAt);
+        taskDate.setHours(0, 0, 0, 0);
+        return taskDate.getTime() === filterDate.getTime();
+      });
+    } else if (this.sortOption === 'dueDate' && this.filterDueDate) {
+      const filterDate = new Date(this.filterDueDate);
+      filterDate.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(task => {
+        if (!task.dueDate) return false;
+        const taskDate = new Date(task.dueDate);
+        taskDate.setHours(0, 0, 0, 0);
+        return taskDate.getTime() === filterDate.getTime();
+      });
+    }
+
+  
+    if (this.sortOption === 'createdAt') {
+      filtered.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    } else if (this.sortOption === 'dueDate') {
+      filtered.sort((a, b) => {
+        const ta = a.dueDate ? new Date(a.dueDate).getTime() : 0;
+        const tb = b.dueDate ? new Date(b.dueDate).getTime() : 0;
+        return ta - tb;
+      });
+    }
+
+   
+    this.todo = filtered.filter(t => t.status === 'todo');
+    this.inProgress = filtered.filter(t => t.status === 'inProgress');
+    this.done = filtered.filter(t => t.status === 'done');
   }
 }

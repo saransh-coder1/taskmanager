@@ -5,6 +5,7 @@
   
   <div class="add-task">
     <input [(ngModel)]="newTaskTitle" placeholder="New Task Title" />
+    <textarea [(ngModel)]="newTaskDescription" placeholder="Task Description"></textarea>
     <select [(ngModel)]="newTaskPriority">
       <option value="Low">Low</option>
       <option value="Medium">Medium</option>
@@ -14,6 +15,7 @@
     <button (click)="addTask()">Add Task</button>
   </div>
 
+ 
   <div class="filter-sort">
     <select [(ngModel)]="filterPriority" (change)="loadTasks()">
       <option value="">All Priorities</option>
@@ -27,29 +29,50 @@
       <option value="createdAt">Created Date</option>
       <option value="dueDate">Due Date</option>
     </select>
+
+    <div *ngIf="sortOption === 'createdAt'" class="date-filter">
+      <input type="date" [(ngModel)]="filterCreatedDate" (change)="loadTasks()" placeholder="Filter by Created Date" />
+    </div>
+
+    <div *ngIf="sortOption === 'dueDate'" class="date-filter">
+      <input type="date" [(ngModel)]="filterDueDate" (change)="loadTasks()" placeholder="Filter by Due Date" />
+    </div>
   </div>
 
- 
+
   <div class="kanban-board" cdkDropListGroup>
-    
-    <div class="kanban-column" cdkDropList #todoList="cdkDropList" [cdkDropListData]="todo" [cdkDropListConnectedTo]="[inProgressList, doneList]" (cdkDropListDropped)="drop($event)">
+
+  
+    <div class="kanban-column" id="todoList" cdkDropList [cdkDropListData]="todo"
+         [cdkDropListConnectedTo]="['inProgressList','doneList']" (cdkDropListDropped)="drop($event)">
       <h3>To Do</h3>
       <div class="task-card" *ngFor="let task of todo" cdkDrag>
         <div class="drag-handle" cdkDragHandle title="Drag">☰</div>
-        
         <div *ngIf="!task.editing">
-          <h4>{{ task.title }}</h4>
-          <p>Priority: {{ task.priority }}</p>
-          <p *ngIf="task.dueDate">Due: {{ task.dueDate }}</p>
+            <h4>{{ task.title }}</h4>
+            <div class="description" *ngIf="task.description">{{ task.description }}</div>
+            <div class="task-meta">
+              <p class="meta">Priority: {{ task.priority }}</p>
+              <p class="meta">Created: {{ task.createdAt | date:'MMM d, y' }}</p>
+              <p class="meta" *ngIf="task.dueDate">Due: {{ task.dueDate | date:'MMM d, y' }}</p>
+            </div>
           <div class="card-actions">
+            <div class="status-dropdown">
+              <button class="status-btn" (click)="task.showStatusDropdown = !task.showStatusDropdown" title="Change Status">⚙️</button>
+              <select *ngIf="task.showStatusDropdown" (change)="changeStatus(task, $event); task.showStatusDropdown = false" (blur)="task.showStatusDropdown = false">
+                <option value="" disabled selected>Move to...</option>
+                <option value="inProgress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
             <button (click)="editTask(task)" title="Edit">✏️</button>
             <button (click)="deleteTask(task)" title="Delete">❌</button>
           </div>
         </div>
 
-     
         <div *ngIf="task.editing" class="edit-form">
-          <input [(ngModel)]="task.title" />
+          <input [(ngModel)]="task.title" placeholder="Task Title" />
+          <textarea [(ngModel)]="task.description" placeholder="Task Description" rows="3"></textarea>
           <select [(ngModel)]="task.priority">
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
@@ -63,22 +86,36 @@
     </div>
 
   
-  <div class="kanban-column" cdkDropList #inProgressList="cdkDropList" [cdkDropListData]="inProgress" [cdkDropListConnectedTo]="[todoList, doneList]" (cdkDropListDropped)="drop($event)">
+    <div class="kanban-column" id="inProgressList" cdkDropList [cdkDropListData]="inProgress"
+         [cdkDropListConnectedTo]="['todoList','doneList']" (cdkDropListDropped)="drop($event)">
       <h3>In Progress</h3>
       <div class="task-card" *ngFor="let task of inProgress" cdkDrag>
         <div class="drag-handle" cdkDragHandle title="Drag">☰</div>
         <div *ngIf="!task.editing">
-          <h4>{{ task.title }}</h4>
-          <p>Priority: {{ task.priority }}</p>
-          <p *ngIf="task.dueDate">Due: {{ task.dueDate }}</p>
+            <h4>{{ task.title }}</h4>
+            <div class="description" *ngIf="task.description">{{ task.description }}</div>
+            <div class="task-meta">
+              <p class="meta">Priority: {{ task.priority }}</p>
+              <p class="meta">Created: {{ task.createdAt | date:'MMM d, y' }}</p>
+              <p class="meta" *ngIf="task.dueDate">Due: {{ task.dueDate | date:'MMM d, y' }}</p>
+            </div>
           <div class="card-actions">
+            <div class="status-dropdown">
+              <button class="status-btn" (click)="task.showStatusDropdown = !task.showStatusDropdown" title="Change Status">⚙️</button>
+              <select *ngIf="task.showStatusDropdown" (change)="changeStatus(task, $event); task.showStatusDropdown = false" (blur)="task.showStatusDropdown = false">
+                <option value="" disabled selected>Move to...</option>
+                <option value="todo">To Do</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
             <button (click)="editTask(task)" title="Edit">✏️</button>
             <button (click)="deleteTask(task)" title="Delete">❌</button>
           </div>
         </div>
 
         <div *ngIf="task.editing" class="edit-form">
-          <input [(ngModel)]="task.title" />
+          <input [(ngModel)]="task.title" placeholder="Task Title" />
+          <textarea [(ngModel)]="task.description" placeholder="Task Description" rows="3"></textarea>
           <select [(ngModel)]="task.priority">
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
@@ -92,22 +129,36 @@
     </div>
 
    
-  <div class="kanban-column" cdkDropList #doneList="cdkDropList" [cdkDropListData]="done" [cdkDropListConnectedTo]="[todoList, inProgressList]" (cdkDropListDropped)="drop($event)">
-      <h3>Done</h3>
+    <div class="kanban-column" id="doneList" cdkDropList [cdkDropListData]="done"
+         [cdkDropListConnectedTo]="['todoList','inProgressList']" (cdkDropListDropped)="drop($event)">
+      <h3>Done ✅</h3>
       <div class="task-card" *ngFor="let task of done" cdkDrag>
         <div class="drag-handle" cdkDragHandle title="Drag">☰</div>
         <div *ngIf="!task.editing">
-          <h4>{{ task.title }}</h4>
-          <p>Priority: {{ task.priority }}</p>
-          <p *ngIf="task.dueDate">Due: {{ task.dueDate }}</p>
+            <h4>{{ task.title }}</h4>
+            <div class="description" *ngIf="task.description">{{ task.description }}</div>
+            <div class="task-meta">
+              <p class="meta">Priority: {{ task.priority }}</p>
+              <p class="meta">Created: {{ task.createdAt | date:'MMM d, y' }}</p>
+              <p class="meta" *ngIf="task.dueDate">Due: {{ task.dueDate | date:'MMM d, y' }}</p>
+            </div>
           <div class="card-actions">
+            <div class="status-dropdown">
+              <button class="status-btn" (click)="task.showStatusDropdown = !task.showStatusDropdown" title="Change Status">⚙️</button>
+              <select *ngIf="task.showStatusDropdown" (change)="changeStatus(task, $event); task.showStatusDropdown = false" (blur)="task.showStatusDropdown = false">
+                <option value="" disabled selected>Move to...</option>
+                <option value="todo">To Do</option>
+                <option value="inProgress">In Progress</option>
+              </select>
+            </div>
             <button (click)="editTask(task)" title="Edit">✏️</button>
             <button (click)="deleteTask(task)" title="Delete">❌</button>
           </div>
         </div>
 
         <div *ngIf="task.editing" class="edit-form">
-          <input [(ngModel)]="task.title" />
+          <input [(ngModel)]="task.title" placeholder="Task Title" />
+          <textarea [(ngModel)]="task.description" placeholder="Task Description" rows="3"></textarea>
           <select [(ngModel)]="task.priority">
             <option value="Low">Low</option>
             <option value="Medium">Medium</option>
@@ -119,5 +170,7 @@
         </div>
       </div>
     </div>
+
   </div>
 </div>
+
